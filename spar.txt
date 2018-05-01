@@ -1,0 +1,55 @@
+
+spar  Simple Parallel ARchiver
+
+
+
+objectives
+
+- simplicity
+    - do not solve all archiving problems, but give users a fast tool
+      to quickly move data over network and store it away for later use
+    - concentrate on speed first
+    - simple things first: create archives/extract archives
+    - appending/removing files: may be never
+    - not a backup tool! not for root, not for special files
+    - ignore big endian for the moment, little endian 64bit only
+
+- being fast on parallel filesystems, or network filesystems with high latency 
+    - exploit parallelism of host machine, that means
+        - parallel scanning of directory tree
+        - parallel compression and checksumming
+        - parallel writing in target archive
+    - a parallel scanner and parallel reading of many files allows to hide  
+      large network latencies, goal is to beat tar/cpio with cold caches by large factors.
+    - write in parallel in large IOs to make good use of capabilities
+      of parallel filesystems like lustre, beegfs or gpfs/spectrum scale.
+
+- offer compression on file basis
+    - the internal format could even choose different compression per block
+    - offer extremly fast and good compression, snappy and zstd
+    - offer crc to detect problems
+
+- do not waste too much memory
+    - file format allows parallel writing while not wasting memory,
+      as files can be interleaved in archive (so small files can be
+      interleaved with large files taking long to archive, which allows
+      for fast archiving of a mix of small and large files)
+
+- offer a streamable format 
+    - sparcreate | ssh host sparextract -C dir
+      should beat scp -r
+
+
+
+usage
+
+-c  create archive
+    example:
+        spar -c archive.spar dir1 dir2
+-i  read file list from stdin
+    example:
+        find dir1 | spar -i -c archive.spar
+-e  extract
+    example:
+        spar -e archive.spar 
+
